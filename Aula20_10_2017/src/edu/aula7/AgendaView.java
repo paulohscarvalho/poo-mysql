@@ -91,6 +91,9 @@ public class AgendaView implements ActionListener, ListSelectionListener {
 				Agenda a = lista.get(0);
 				agendaToForm(a);
 			}
+			tabela.invalidate();
+			tabela.revalidate();
+			tabela.repaint();
 		}
 	}
 

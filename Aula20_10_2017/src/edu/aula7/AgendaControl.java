@@ -1,9 +1,9 @@
 package edu.aula7;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,33 +14,45 @@ public class AgendaControl implements TableModel {
 	
 	private List<Agenda> lista = new ArrayList<Agenda>();
 	
-	public void adicionar(Agenda a) throws SQLException { 
-		//lista.add( a );
+	public void adicionar(Agenda a) { 
 		try {
-			Class.forName("com.mysql.jdbc.Driver");
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			Connection con = DBUtil.getInstance().getConnection();
+			PreparedStatement stmt = con.prepareStatement(
+					"INSERT INTO contatos " +
+					" (id, nome, telefone, email, descricao) " + 
+				    "VALUES (?, ?, ?, ?, ?)" );
+
+			stmt.setInt(1, 0);
+			stmt.setString(2, a.getNome() );
+			stmt.setString(3, a.getTelefone() );
+			stmt.setString(4, a.getEmail() );
+			stmt.setString(5, "" );
+			stmt.executeUpdate();			
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		String url = "jdbc:mysql://localhost:3306/agenda";
-		Connection con = DriverManager.getConnection(url, "root", "aluno");
-		System.out.println("Conexão bem sucedida");
 		
-		PreparedStatement stmt = con.prepareStatement();
-		String cmd = "INSERT INTO contatos (id, nome, telefone, email, descricao) "
-				+ "VALUES (?, ?, ?, ?, ?)";
-		int i = stmt.executeUpdate(cmd);
-		System.out.println("Foram afetados " + i + " registros");
 	}
 	
 	public List<Agenda> pesquisar(String nome) { 
-		List<Agenda> listaTemp = new ArrayList<Agenda>();
-		for( Agenda a : lista ) { 
-			if (a.getNome().contains( nome )) { 
-				listaTemp.add( a );
-			}
+		try {
+			Connection con = DBUtil.getInstance().getConnection();
+			String cmd = "SELECT * FROM contatos WHERE nome like ?";
+			PreparedStatement stmt = con.prepareStatement( cmd );
+			stmt.setString(1,  "%" + nome + "%");
+			ResultSet rs = stmt.executeQuery();
+			lista.clear();
+			while (rs.next()) { 
+				Agenda a = new Agenda();
+				a.setEmail( rs.getString("email") );
+				a.setNome(rs.getString("nome") );
+				a.setTelefone( rs.getString("telefone") );
+				lista.add( a );
+			}	
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		return listaTemp;
+		return lista;
 	}
 	
 	public Agenda getItem( int i ) { 
